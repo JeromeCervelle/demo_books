@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../model/Book.dart';
 
 class DatabaseClient {
@@ -35,20 +34,20 @@ class DatabaseClient {
     ''');
   }
 
-  // Méthode d'initialisation
-  Future<void> init() async {
-    await database; // Assure que la base de données est initialisée
-  }
-
-  Future<List<Map<String, dynamic>>> fetchBooks() async {
-    Database db = await database;
-    return await db.query('book');
-  }
-
   Future<void> insertBook(Book book) async {
-    Database db = await database;
-    (book.authorId == null)
-        ? await db.insert('book', book.toMap(), conflictAlgorithm: ConflictAlgorithm.replace,)
-        : await db.update('book', book.toMap(), where: 'author_id = ?', whereArgs: [book.authorId]);
+    final db = await database;
+    await db.insert(
+      'book',
+      book.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Book>> fetchBooks() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('book');
+    return List.generate(maps.length, (i) {
+      return Book.fromMap(maps[i]);
+    });
   }
 }
